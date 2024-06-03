@@ -46,21 +46,28 @@ options(bitmapType = "cairo")
 ```
 
 
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(ggridges)
+library(readxl)
+library(here)
+library(lubridate)
+library(readr)
+library(ggthemes)
+library(hrbrthemes)
+library(kableExtra)
+library(gtsummary)
+library(ggrepel)
+```
+
 # Contexto
 
-
-
-El siguiente documento tienen como objetivo identificar y estandarizar las bases de datos provenientes del proyecto FEMP_AND_04, y a su vez generar templates para realizar una evaluación de stock de la coquina (*Donax trunculus*) en el Golfo de Cádiz en un contexto histórico. El foco se centra en proveer los insumos necesarios para realizar una evaluación de stock, la cual dependerá de las características del recurso y de la disponibilidad de información recabada en este trabajo.
-
-Las principales piezas de información necesarias para una evaluación de stock comprenden variadas dimensiones, entre las cuales se cuentan aspectos biológicos, pesqueros y ambientales. Estos datos se encuentran disponibles en fuentes oficiales pesqueras y tambien en proyectos que comienzan a levantar información del recurso de forma sistemática desde el año 2013 bajo proyectos de financiamiento Europeo [@Delgado2015].
-
-Una vez identificadas las bases de datos, se procede a un trabajo de estandarización y Análisis Exploratorio de Datos (AED), El AED es un componente metodológico complementario que tiene dos objetivos específicos; el primero tiene que ver con la asesoría científica para el levantamiento de indicadores biológico-pesquero, y en segundo lugar, identificar patrones y generar templates para realizar la primera evaluación de stock sobre este recurso. Estos análisis son escenciales para brindar asesoramiento a la Junta de Andalucía a través del plan de gestión para *D. trunculus* [@BOJA2023].
 
 
 
 # Área de Estudio
 
-Previo a modelar la dinámica poblacional de coquina, es necesario el desarrollo de un modelo conceptual adecuado sobre el cual pronunciarse sobre asesoría y estado de explotación. En este sentido, identificar dominio espacial de busqueda de información y evaluación del recurso es fundamental. La zona de distribución de la coquina objeto de este análisis es en base
+La zona de distribución de la coquina objeto de este análisis es en base
 a la aplicación de la regulación marisquera española, relacionado con la
 producción. Para ello, el litoral andaluz se dividió en diferentes
 **zonas de producción** (ZZPP) las cuales se encuentran definidas en la
@@ -79,41 +86,11 @@ cabo por el IEO [@Marco2022] (Figura \@ref(fig:map1)).
 knitr::include_graphics("Fig/Map1.jpg") 
 ```
 
-# Fuentes de Información
-
-En este trabajo se deben revisar todos los componentes que se tienen en cuenta, para ello, investigadores del IEO prepararon una descripción de cada fuente, características y su escala temporal. La mayoría de estos datos son compuestos por el monitoreo y seguimiento científico de *Donax trunculus* en el Golfo de Cádiz, que lleva a cabo el IEO y AGAPA.
-
-A coninuación se describen los principales componentes de información de la coquina en el Golfo de Cádiz y su escala espacial y temporal:
-
-
-
-| Item | Periodo | Observación | Agregación  |
-|:-------:|:------:|:-----------:|:---------:|
-| DESEMBARQUE | 2013-2022 | kg/mariscador o barco/mes | Por playa |
-| ESTRUCTURA TALLAS | 2017-2023 | Datos previos al 2020 deben ser revisados | Por playa, por tipo de rastro | DENSIDAD | 2017-2023 | g/m2/  | Mes, Playa, Rastro |
-| RENDIMIENTO (CPUE) | 2013-2023 | hora/mariscador/dia. (60 min*peso coquina>25mm*5min) | Por Mes, playa, rastro |
-| INDICE RECLUTAMIENTO (D15) | 2013-2022 | ind/m2 < 15mm | Por Mes, playa, rastro |
-| TALLA PRIMERA MADUREZ |  | L50=10.8mm | L95= pendiente |
-
-A continuación se describen los componentes de cada pieza de información disponible para el recurso coquina.
-
 ## Monitoreo pesquero y poblacional
 
-Una de las fuentes de información mas importantes recopiladas y analizadas aquí, tiene relación con el proyecto FEMP-04. Este proyecto, a través de muestreos en playa mensuales, recopila data de diversos indicadores de la población, así como también de la pesquería. Cabe señalar que estos datos han sido sistematicaticamente recopiladas desde el año 2013, sin embargo, tienen complejidades que deben ser atendidas previo a cualquer tratamiento de datos. Los datos han sido colectados con periocidad mensual, pero estos han sufrido cambios de formato importantes los cuales tienen implicancias al momento de la estandarización. Lo primero es entender que los muestreos, ya sea `POBLACIONAL`y `COMERCIAL`, tienen una serie de calculos sucesivos posteriores a los registros crudos. En ese sentido, los siguientes diagramas muestran la lógica utilizada para calcular las variables en el muestreo  `POBLACIONAL` (Figura \@ref(fig:edaplot1)).
+Una de las fuentes de información mas importantes recopiladas y analizadas aquí, tiene relación con el proyecto FEMP-04. Este proyecto, a través de muestreos en playa mensuales, recopila data de diversos indicadores de la población, así como también de la pesquería. Cabe señalar que estos datos han sido sistematicaticamente recopiladas desde el año 2013, sin embargo, tienen complejidades que deben ser atendidas previo a cualquer tratamiento de datos. Los datos han sido colectados con periocidad mensual, pero estos han sufrido cambios de formato importantes los cuales tienen implicancias al momento de la estandarización. Lo primero es entender que los muestreos, ya sea `POBLACIONAL`y `COMERCIAL`, tienen una serie de calculos sucesivos posteriores a los registros crudos. En ese sentido, los siguientes diagramas muestran la lógica utilizada para calcular las variables en el muestreo  `POBLACIONAL`
 
-```{r edaplot1, echo=FALSE, out.width="80%", fig.cap= "Poblacional sample scheme"}
-knitr::include_graphics("Fig/Fig1.png")
-```
-
-
-El caso del muestreo `COMERCIAL`, solo se registran los individuos que pase por la zaranda previo pesaje de la muestra (Figura \@ref(fig:edaplot2)).
-
-
-```{r edaplot2, echo=FALSE, out.width="80%",fig.cap= "Comercial sample scheme"}
-knitr::include_graphics("Fig/Fig2.png")
-```
-
-## Parámetros de HV
+## Parámetros de HV de referencia
 
 Uno de los principales elementos de información proviene de los estudios reproductivos y de parámetros realizados sobre coquina. A continuación un vistazo general a este importante componente para la evaluación de stock.
 
@@ -130,305 +107,36 @@ Uno de los principales elementos de información proviene de los estudios reprod
 | L~95~ |   Pendiente |  |
 
 
-En cuanto a aspectos reproductivos, la coquina tiene los máximos de IGS entre los meses de Febrero – julio, con un máximo de desove entre mayo- julio, coincidiendo con la veda. La Figura \@ref(fig:matplot1) representa el ciclo vital interanual de coquina [@Delgado2017].
-
-
-```{r matplot1, echo=FALSE, out.width="80%", fig.cap= "Schematic representation of the reproductive cycle, periods of emission of gametes and related recruitment events in populations of D. trunculus from SW Spain. Black symbols represent the C1 cohort (from February-March) and grey symbols represent the C2 cohort (from July)"}
-knitr::include_graphics("Fig/Ciclo.png")
-```
-
-Por otro lado, cada componente y su rutina de estandarización estan detallas en los siguientes link;
-
-- [Composiciones de Tallas](Compsiciones-de-Tallas.html)
-- [Rendimiento Pesquero](Rendimiento-Pesquero.html)
-- [Mapas](Mapas.html)
-- [Indice de reclutamiento D15](Recruit_Index.html)
-
 ## Variables ambiental
 
 Si bien los modelos de evaluación no suelen incorporar variables ambientales de manera directa a la modelación de la dinámica en cuestión, se pueden establecer correlaciones de las variables poblacionales obtenidas en el modelo y algún driver de comprobada influencia sobre los procesos poblacionales. En este sentido, analizaremos la información recabada durante los muestreos, es decir; Clorophila y variables fisicas como Temperatura, salinidad y ogeno disuelto.
 
 - [Correlaciones ambientales](Correlaciones-variables-poblacionales-y-ambientales.html)
 
-## Desembarques oficiales
-
-Mediante canales oficiales, se solicitaron las cifras oficiales de desembarque de coquina en el Golfo de Cádiz para coquina. estos datos esn disponibpes desde el 2013. Si bien la pesqueria tiene sus inicios previo a este periodo, es vital contar con información de remoción por parte de la flota para posteriores ajustes de magnitudes en la estimación del modelo. 
-
-A modo general, la serie historica de desembarques varia entre 1 y 15 t y estan repartidas entre distintas lonjas de comercialización. anualmente se puede ver en La Figura \@ref(fig:dese) representa el ciclo vital interanual de coquina [@Delgado2017].
-
-
-```{r dese, echo=FALSE, fig.cap= "Desembarques oficiales para coquina en el Golfo de Cádiz entre los años 2013 y 2023"}
-knitr::include_graphics("Fig/Desembarques.png")
-```
-
-El detalle de los datos y otras agrupaciones temporales y espaciales puede ser visto en el siguiente enlace;
-
-- [Desembarques](Desembarques.html)
-
-# Modelo de stock assessment
-
-El modelo de la dinámica poblacional de coquina es implementado en Stock Synthesis (SS3)
-(Versión 3.30.10) [@Methot2013]. SS3 es un modelo de evaluación
-estructurado por edad con datos en talla de la clase de modelos denominada
-*modelos de análisis integrados*. SS3 tiene un submodelo de población que simula
-el crecimiento de una cohorte, desplazamiento, y procesos de mortalidad; un submodelo
-de observación estima valores esperados para varios tipos de datos; un
-submodelo estadístico caracteriza la bondad de ajuste de los datos y obtiene el
-mejor ajuste de parámetros con varianza asociada; y un proceso de alimentación
-para niveles necesarios para el manejo. SS produce las cantidades, con intervalos
-de confianza, necesarias para implementar aversión al riesgo y reglas de control de
-la pesca. El modelo está codificado en C++ con la estimación de parámetros
-habilitada por diferenciación automática (ADMB) [@Fournier2012]. Las salidas
-y análisis posteriores de visualización de los resultados son realizadas mediante la
-librería *r4ss* [@Taylor2019]. SS3 está disponible en el laboratorio de
-modelación numérica para poblaciones marinas explotadas de la National Oceanic
-and Atmospheric Administration [NOAA](https://vlab.ncep.noaa.gov/web/stocksynthesis).
-
-Los principales supuestos del modelo edad-estructurado con datos en talla de SS3 son:
-
-- El stock de coquina está constituido por sub-unidades de stock que son parte
-de un pool común (stock) dentro de la zona marisquera del Golfo de Cádiz.
-- La mortalidad natural es conocida y constante entre años y edades.
-- La mortalidad natural y por pesca son simultáneas (función de Baranov).
-- El patrón de vulnerabilidad de los individuos es a la edad y sigue un modelo
-logístico.
-- El modelo supone que la almeja presenta en cada unidad de análisis un
-stock cerrado y una población compuesta por no más de 5 grupos de
-edades.
-- El reclutamiento (segundo año de edad) es el resultado del “desove”
-de conjunto de bancos vecinos y su sobrevivencia es modulada principalmente por cuestiones ambientales, lo que significa que los reclutamientos responden a procesos principalmente estocásticos donde la
-función stock-recluta es difusa.
-
-Este modelo y sus flujo de estimación se puede esquematizar como lo indica la  Figura \@ref(fig:ss3)
-
-```{r ss3, echo=FALSE, out.width="80%", fig.cap= "Diagrama del flujo de datos, modelo y asesoría para coquina en el Golfo de Cádiz"}
-knitr::include_graphics("Fig/Diagrama_Modelo.png")
-```
-# Consideraciones generales
-
-- Este AED permite registrar rutinas y análisis reproducibles por cualquier investigador que requiera información complementarios respecto a la pesquería de coquina.
-
-- Existe una gran diversidad de formatos y preguntas que estan de alguna manera representadas en las bases de datos aca utilizadas, lo cual dificulta su estandarización. Lo importante es realizar las preguntas correctas y precisas para poder, en primer lugar, manipular la data, y en segundo lugar, realizar los analisis correctos.
-
-- El enfoque inicial de trabajo con las bases de datos fue el de repetir los análisis y rutinas que se habián estado realizando por el equipo FEMP-04, con el rigor necesario para obtener los mismos resultados, independiente se utilizarán diferentes algoritmos para calcular los principales indicadores poblacionales que se utilizan en la asesoría. Una ves logrado ello, la idea es hacer recomendaciones y observaciones que representen una mejora, simplificación y a su vez, una mejor representación de la dinámica poblacional de la pesquería de coquina en el Golfo de Cádiz.
-
-- Por ultimo, el trabajo tiene como objetivo final extraer la información fidedigna de la dinámica poblacional de cada base de datos analizada para generar los templates adecuados y realizar una evaluación de stock que permita dar las bases cientificas para el Plan de Manejo de coquina. Este trabajo deevaluación se proyecta para el año 2024. 
-
-- Este documento y sus codigos asociados tienen la intención de ser reporducibles y transparentes para futuras aplicaciones de asesoría científica en la pesquería de coquina en el Golfo de Cádiz.
-
 
 
 ```{r}
-
-
 # Leer Datos completos
-
-sizeall2 <- readRDS("~tallas13_24.RDS")
-
-
-# Prepara data 
-
-# filtro lo requerido por MD: Poblacional y Abril y Mayo
-tallapobmar <- sizeall2 %>% 
-  filter(rastro=="POBLACIONAL",
-         MES %in% c("April","May"))
-
-# Categorizar los datos
-tallapobmar$CAT <- as.numeric(as.character(cut(
-  x = tallapobmar$sizeE,
-  breaks = seq(0, 50, 1),
-  labels = seq(0, 49, 1),
-  right = FALSE
-)))
-
-
-# Calcular la proporción de cada bin por año
-tallaprop <- tallapobmar %>%
-  group_by(ANO, MES, CATL) %>%
-  summarise(count = n()) %>%
-  mutate(proportion = count / sum(count) * 100) %>%
-  arrange(ANO, MES,  CATL)
-
-
- # Grafico simple
-
-ggplot(tallaprop,
-       aes(x = CATL, 
-           y = proportion, 
-           fill = as.factor(ANO))) +
-  geom_col() +
-  facet_grid(ANO ~ MES) +
-  labs(x = "CATL", y = "Proporción (%)", color = "Año") +
-  theme_few() +
-  geom_vline(xintercept = 10.8, col="red")+
-  scale_fill_viridis_d(option = "H",
-                       name="AÑO")+
-  ggtitle("Proporción por Mes y Año")
-
-# guardo data
-
-saveRDS(tallaprop, "tallas_MD.RData")
-write_csv(tallaprop, "tallas_MD.csv")
-
-
+sizeall2 <- readRDS("~/IEO/Parameters_Coquina/tallas13_24.RDS")
 ```
 
-
-
+Prepara daata
+```{r}
+# filtro lo requerido para el analisis
+tallap <- sizeall2 %>% 
+  filter(rastro=="POBLACIONAL")
+```
 
 # Methodology
 
-The object `ohbio2` come from data exploration analysis in data request
-CCAMLR data. This objetc have bio information from krill.
-
-```{r  echo=FALSE}
-#datos entregados por secretaria de CCMLAR
-metadata <- load("~/DOCAS/Data/565_C1_KRI_2021-10-01/DATA_PRODUCT_565.RData")
-# Data procesada por MMardones
-#ohbio <- load("DataLengthKrill.RData")
-#ohbio
-#metadata
-#son lo mismo
-#cargo objeto
-meta <- get("METADATA")
-c1 <- get("C1")
-ohbio <- get("OBS_HAUL_BIOLOGY")
-```
-
-Join data set with master as `c1` set. This join is trought
-`obs_haul_id` variable to get geoposition variables
-
-```{r warning=FALSE}
-ohbio2 <- left_join(c1, ohbio, by="obs_haul_id")
-names(ohbio2)
-```
-
-
-```{r}
-ohbio3 <- ohbio2 %>%
-  mutate(Year = year(date_catchperiod_start),
-         Month = month(date_catchperiod_start),
-         Day = day(date_catchperiod_start)) %>% 
-  #toupper() para convertir los valores a mayúsculas
-  mutate(sex_code = toupper(sex_code)) %>% 
-  dplyr::select(7, 9, 11, 12, 14, 24, 25, 29, 42, 44, 46, 47, 43, 45) |>  
-  filter(asd_code=="481")
-```
-
-
-First thing is get different rater layer to join krill data length
-according different porpoises.
-
-```{r raster}
-# Cargo linea de costa
-coast <- load_Coastline()
-coast1<- st_as_sf(coast) 
-coast2 = st_transform(coast1, "+proj=latlong +ellps=WGS84")
-# Uso las agrupaciones de Strata
-strata <- st_read("~/DOCAS/Mapas/Antarctic_SHPfiles/Strata.shp",
-                quiet=T)
-strata=st_transform(strata, "+proj=latlong +ellps=WGS84")
-```
-Test Strata SSMU, just to know another way to join data, but this kind of spatial structuration is deprecated to mamagemente use (Figure\@ref(fig:maptest2).
-
-
-
-Grouping bio data into stratas
-
-```{r ssmu1}
-ohbio6 <- st_as_sf(ohbio3 %>% 
-                     drop_na(latitude_set_end), 
-                   coords = c("longitude_set_end", "latitude_set_end"),  
-                  crs = "+proj=latlong +ellps=WGS84")
-```
-
-## Study Area
-
-```{r maptest, fig.cap="Strata Maps in 48.1"}
-# y testeo el mapa
-ssmap <- ggplot()+
-  geom_sf(data = strata |> 
-            filter(ID != "Outer") |>  
-           mutate(ID = str_replace_all(ID, "Extra", "GS")),color="red")+
-  geom_sf(data = ohbio6 |>
-            drop_na(length_total_cm) |> 
-            filter(Year>2017), 
-          aes(color = length_total_cm)) +
-  geom_text_repel(data = strata |>  
-            filter(ID != "Outer") |>  
-           mutate(ID = str_replace_all(ID, "Extra", "GS")), 
-            aes(x = Labx, y = Laby, 
-                label = ID), 
-            min.segment.length = 0,
-                             box.padding = 2,
-                             max.overlaps = 10)+
-  geom_sf(data = coast2, colour="black", fill=NA)+
-  scale_color_viridis_c(option = "G",
-                        name="Length (cm)")+
-  ylim(230000, 2220000)+
-  xlim(-3095349 , -1858911)+
-  # coord_sf(crs = 32610)+ #sistema de prpyecccion para campos completos
-  coord_sf(crs = 6932)+
-  theme_bw()
-ssmap
-```
-
-
-Length composition by Strata CCAMLR to visualization first. First step is group data into to poligons strata.
-
-```{r eval=FALSE}
-strata <- st_make_valid(strata)
-sf4 <- st_join(strata, ohbio6)
-# Save an object to a file
-saveRDS(sf4, file = "sf4.rds")
-
-```
-
-Load RData
-```{r}
-# Restore the object
-sf4 <- readRDS("sf4.rds")
-```
-
-Statistical difference
+Statistical difference to test
 
 ```{r}
 m <- aov(length_total_cm ~ID, data=sf4)
 plot(TukeyHSD(m))
 ```
 
-
 ## Data
-
-histogram length data to viz in anthor way.
-
-
-```{r warning=FALSE}
-jzstrata <- ggplot(sf4 %>% 
-                     mutate(ID = if_else(ID == "Extra", "GERLACHE", ID)) %>% 
-               filter(Year>2010,
-                      ID !="Outer"),
-             aes(x=length_total_cm, 
-                 y = as.factor(Month), 
-                 fill=ID))+
-  geom_density_ridges(stat = "binline", bins = 30, 
-                      scale = 1.9, 
-                      draw_baseline = FALSE,
-                      alpha=0.9)+
-  facet_grid(Year~ID) +   
-  geom_vline(xintercept = 3.6, color = "red")+
-  scale_x_continuous(breaks = seq(from = 1, to = 10, 
-                                  by = 2))+
-  scale_y_discrete(breaks = seq(from = 1, 
-                                to = 12, by = 4))+
-  scale_fill_viridis_d(name="Strata",
-                       option="F")+
-  theme_few()+
-  xlab("Length (cm.)")+
-  ylab("")
-jzstrata
-```
-Now, must filter the DF
 
 ```{r}
 sf5 <- sf4 |> 
@@ -444,120 +152,61 @@ sf5 <- sf4 |>
   data.frame()
 ```
 
-
-
-Calculating the proportion of records per year and per stratum in a table. This table allows us to establish criteria for defining the strata on which we will analyze krill parameter. We leave out just `JOIN`.
+Theoric curve in *Donax trunculus*
 
 
 ```{r}
-# Calcular la proporción
-proporcion <- (round(table(sf5$ID) / sum(table(sf5$ID))*100,2))
+t <- seq(-0.2, 6, 0.5)
+K <- c(2, 1, 0.5)
+COL <- rep(1,3)
+LTY <- 1:3
+for(i in seq(K)){
+  Lt <- VBGF(param = list(Linf = 4.8, K = K[i], t0 = -0.1), t = t)
+  if(i == 1){
+    plot(t, Lt, t="l", ylim = c(0,5.5), yaxs="i", col = COL[i], lty = LTY[i])
+    abline(v = 0, col = 8, lty = 3)
+    abline(h = 4.8, col = 3, lty = 3)
+    points(x = -0.1, y = 0, pch = 16, col = 4)
+    text(x = -0.1, y = 0, labels = expression(italic(t[0])), adj=c(1,-0.5), col=4)
+    text(x = -0.1, y = 4.8, labels = expression(italic(L[infinity])), adj=c(1,-0.5), col=3)
+    legend("bottomright", legend = paste("K =", K), lty=LTY, col=COL, bty="n")
+  }else{
+    lines(t, Lt, col = COL[i], lty = LTY[i])
+  }
+}
 
-# Crear una tabla con las proporciones
-tabla_proporcion <- as.data.frame(proporcion)
-tabla_proporcion$Categoria <- rownames(tabla_proporcion)
-rownames(tabla_proporcion) <- NULL
-
-# Renombrar las columnas
-colnames(tabla_proporcion) <- c("Strata", "%")
-
-# Mostrar la tabla utilizando kbl()
-kbl(tabla_proporcion, 
-    caption = "Proportion length register by Strata")  |> 
-  kable_classic(full_width = F, 
-                html_font = "Cambria") |> 
-  kable_styling(bootstrap_options = "striped", 
-                latex_options = "striped")
 ```
 
 ## Parameters estimation `k` and `L_inf_`
 
 
 
+
 ```{r}
 #MALE
+tallap2 <- tallap |>
+  mutate(Date = as.Date(Date)) |>  
+  mutate(Monthly_Group = floor_date(Date, "month")) |>   # New column
+  drop_na(size) 
 
-sf5fil <- sf5 |>
-  filter(ID %in% c("BS", "EI", "GERLACHE", "SSIW"),
-         sex_code %in% "M") |>  
-  mutate(date_catchperiod_start = as.Date(date_catchperiod_start)) |>  
-  mutate(yearly_Group = floor_date(date_catchperiod_start, "year")) |>   # New column
-  drop_na(length_total_cm) 
+# Crear un objeto lfq para el ID actual
+lfq <- lfqCreate(data = tallap2,
+                   Lname = "size",
+                   Dname = "Monthly_Group",
+                   bin_size = 2)
 
-# Definir los nombres correspondientes a cada objeto lfq_results
-nombres <- c("SSI", "BS", "GERLACHE", "EI")
-# Crear una lista para almacenar los resultados de cada ID
-lfq_results <- list()
-# Iterar sobre cada ID
-for (id in unique(sf5fil$ID)) {
-  # Obtener el nombre correspondiente
-  nombre <- nombres[which(unique(sf5fil$ID) == id)]
-  # Filtrar los datos para el ID actual
-  df_id <- sf5fil %>% filter(ID == id)
-  # Crear un objeto lfq para el ID actual
-  lfq <- lfqCreate(data = df_id,
-                   Lname = "length_total_cm",
-                   Dname = "yearly_Group",
-                   bin_size = 0.1)
-  # Agregar el resultado a la lista
-  lfq_results[[id]] <- lfq
-  # Graficar el objeto lfq
-  plot(lfq, Fname = "catch",
-       main = nombre)
-}
+# Graficar el objeto lfq
+plot(lfq, Fname = "catch",
+     hist.sc = 1.5)
 
-#FEMALE
-
-sf5filhe <- sf5 |>
-  filter(ID %in% c("BS", "EI", "GERLACHE", "SSIW"),
-         sex_code %in% "F") |>  
-  mutate(date_catchperiod_start = as.Date(date_catchperiod_start)) |>  
-  mutate(yearly_Group = floor_date(date_catchperiod_start, "year")) |>   # New column
-  drop_na(length_total_cm) 
-
-# Definir los nombres correspondientes a cada objeto lfq_results
-nombres <- c("SSI", "BS", "GERLACHE", "EI")
-# Crear una lista para almacenar los resultados de cada ID
-lfq_resultshe <- list()
-# Iterar sobre cada ID
-for (id in unique(sf5filhe$ID)) {
-  # Obtener el nombre correspondiente
-  nombre <- nombres[which(unique(sf5filhe$ID) == id)]
-  # Filtrar los datos para el ID actual
-  df_idhe <- sf5filhe %>% filter(ID == id)
-  # Crear un objeto lfq para el ID actual
-  lfqhe <- lfqCreate(data = df_idhe,
-                   Lname = "length_total_cm",
-                   Dname = "yearly_Group",
-                   bin_size = 0.1)
-  # Agregar el resultado a la lista
-  lfq_resultshe[[id]] <- lfqhe
-  # Graficar el objeto lfq
-  plot(lfqhe, Fname = "catch",
-       main = nombre)
-}
 ```
 
 Identified difference in length distribution just to male:
 
 ```{r message=FALSE}
-Bhattacharya(lfq_results$EI)
+Bhattacharya(lfq)
 ```
 
-
-```{r message=FALSE}
-Bhattacharya(lfq_results$SSIW)
-```
-
-
-```{r message=FALSE}
-Bhattacharya(lfq_results$BS)
-```
-
-
-```{r message=FALSE}
-Bhattacharya(lfq_results$GERLACHE)
-```
 
 now we assign objet to male `lfq_result` and female `lfq_resulthe` and plot with `lfqRestructure()`
 
@@ -565,649 +214,192 @@ now we assign objet to male `lfq_result` and female `lfq_resulthe` and plot with
 Male
 
 ```{r}
-# Definir los nombres correspondientes a cada objeto lfq_results
-nombres <- c("SSI", "BS", "GERLACHE", "EI")
-# Iterar sobre cada objeto lfq almacenado en lfq_results
-for (i in seq_along(lfq_results)) {
-  lfq <- lfq_results[[i]]
-  # Obtener el nombre correspondiente
-  nombre <- nombres[i]
-  # Restructurar el objeto lfq
-  lfqbin <- lfqRestructure(lfq, MA = 3, addl.sqrt = TRUE)
+lfqbin <- lfqRestructure(lfq, MA = 11)
   # Graficar el objeto lfq reestructurado
-  plot(lfqbin, hist.col = c("white", "black"),
+plot(lfqbin, 
+      hist.sc = 1.5,
+     hist.col = c("white", "black"),
        image.col = c(rep(rgb(1,0.8,0.8),1000), "white", 
                      rep(rgb(0.8,0.8,1),1000)),
-       ylim = c(0,max(lfqbin$midLengths+0.5)),
-       main = nombre)
+       ylim = c(0,max(lfqbin$midLengths+0.5)))
   # Ajustar curvas al objeto lfq reestructurado
-  tmp <- lfqFitCurves(lfqbin, par = list(Linf=6.5, 
-                                          K=0.45,
-                                          t_anchor=0.5),
+lfqFitCurves(lfqbin, 
+             tincr = 0.5,
+             par = list(Linf=48, 
+                                          K=0.47,
+                                          t_anchor=0.05,
+                                C=0.7,
+                                ts=0.05),
                       draw = TRUE, col=4, lty=2)
-}
+legend("top", legend = "estimated", col=4, lty=2)
+
 ```
 
-Female
 
 ```{r}
-# Crear una lista para almacenar los resultados de PW_results <- list()
+lfqbinELE <- ELEFAN(lfqbin,
+                    MA = 7,
+                    agemax=5,
+                    Linf_range = seq(40, 60, length.out = 30),
+                    K_range = exp(seq(log(0.1),log(4), length.out = 30)),
+                    method = "cross",
+                    cross.date = tallap2$Date[3],
+                    cross.midLength = tallap2$size[5],
+                    contour = TRUE,
+                    add.values = FALSE,
+                    plot = TRUE,
+                    hide.progressbar = TRUE)
 
-# Definir los nombres correspondientes a cada objeto lfq_results
-nombres <- c("SSI", "BS", "GERLACHE", "EI")
 
-# Iterar sobre cada objeto lfq almacenado en lfq_results
-for (i in seq_along(lfq_resultshe)) {
-  lfqhe <- lfq_resultshe[[i]]
-  
-  # Obtener el nombre correspondiente
-  nombre <- nombres[i]
-  
-  # Restructurar el objeto lfq
-  lfqbinhe <- lfqRestructure(lfqhe, MA = 3, addl.sqrt = TRUE)
-  
-  # Graficar el objeto lfq reestructurado
-  plot(lfqbinhe, hist.col = c("white", "black"),
-       image.col = c(rep(rgb(1,0.8,0.8),1000), "white", 
-                     rep(rgb(0.8,0.8,1),1000)),
-       ylim = c(0,max(lfqbinhe$midLengths+0.5)),
-       main = nombre)
-  
-  # Ajustar curvas al objeto lfq reestructurado
-  tmp <- lfqFitCurves(lfqbinhe, par = list(Linf=6.5, 
-                                          K=0.45,
-                                          t_anchor=0.5),
-                      draw = TRUE, col=4, lty=2)
-}
+# run ELEFAN with simulated annealing
+lfqbinSA <- ELEFAN_SA(lfqbin, 
+                    SA_time = 60*0.5, 
+                    MA = 7, 
+                    agemax = 5,
+                    seasonalised = TRUE, addl.sqrt = TRUE,
+                    init_par = list(Linf = 48, 
+                                    K = 0.47, 
+                                    t_anchor = 0.5,
+                                    C=0, 
+                                    ts = 0),
+                    low_par = list(Linf = 40,
+                                   K = 0.01,
+                                   t_anchor = 0, 
+                                   C = 0, 
+                                   ts = 0),
+                    up_par = list(Linf = 60,
+                                  K = 1, 
+                                  t_anchor = 1,
+                                  C = 1, ts = 1))
+
+# run ELEFAN with genetic algorithm
+lfqbinGA <- ELEFAN_GA(lfqbin, 
+                    MA = 7, 
+                    seasonalised = TRUE, 
+                    maxiter = 10, 
+                    agemax = 5,
+                    addl.sqrt = TRUE,
+                    low_par = list(Linf = 40,
+                                   K = 0.01,
+                                   t_anchor = 0, 
+                                   C = 0, 
+                                   ts = 0),
+                    up_par = list(Linf = 60,
+                                  K = 1, 
+                                  t_anchor = 1,
+                                  C = 1, ts = 1),
+                    monitor = FALSE)
 
 ```
+
+
+
 ### Modal Progression analysis with `ELEFAN` to estimated `Linf`and `K`
 
 Method based on @Pauly1987 and @Mildenberger2017
-
-#### Krill Male
 
 first we use `mixR` to identified numbers of compoenent (modal compositions) we have each stratum. With this result, set `ELEFAN` method
 
 
 ```{r eval=FALSE}
-unique_ids <- unique(sf5$ID)
-
-obj_id <- list()
-
-for (id in unique_ids) {
-  filtered_data <- sf5 %>% 
-    drop_na(length_total_cm) %>% 
-    filter(sex_code %in% "M", 
-           ID !="JOIN",
-           ID == id)
-  obj_id[[id]] <- filtered_data
-}
-
-# select number of components
-
-s_normalgs = select(obj_id$GERLACHE$length_total_cm, ncomp = 2:6)
-plot(s_normalgs)
-s_normalei = select(obj_id$EI$length_total_cm, ncomp = 2:6)
-plot(s_normalei)
-s_normalbs = select(obj_id$BS$length_total_cm, ncomp = 2:6)
-plot(s_normalbs)
-s_normalsswi = select(obj_id$SSWI$length_total_cm, ncomp = 2:6)
-plot(s_normalsswi)
-
 # fit a Normal mixture model
-modgs = mixfit(obj_id$GERLACHE$length_total_cm, ncomp = 3,
+modgs = mixfit(tallap2$size, ncomp = 3,
               pi = c(0.5, 0.5, 0.5), 
-              mu = c( 3, 4, 5), 
+              mu = c(2, 3, 4), 
               sd = c(0.2, 0.2, 0.2))
 
 
-# fit a Normal mixture model
-modei = mixfit(obj_id$EI$length_total_cm, ncomp = 4,
-              pi = c(0.5, 0.5, 0.5, 0.5), 
-              mu = c( 3, 4, 5, 6), 
-              sd = c(0.2, 0.2, 0.2, 0.2))
-
-
-# fit a Normal mixture model
-modbs = mixfit(obj_id$BS$length_total_cm, ncomp = 5,
-              pi = c(0.5, 0.5, 0.5, 0.5, 0.5), 
-              mu = c( 2, 3, 4, 5, 6), 
-              sd = c(0.2, 0.2, 0.2, 0.2, 0.2))
-
-
-# fit a Normal mixture model
-modsswi = mixfit(obj_id$SSIW$length_total_cm, ncomp = 4,
-              pi = c(0.5, 0.5, 0.5, 0.5), 
-              mu = c( 3, 4, 5, 6), 
-              sd = c(0.2, 0.2, 0.2, 0.2))
-```
-
-
-```{r, eval=FALSE, fig.width=8, fig.height=5}
 GSplot <- plot(modgs,
      theme = "bw",
-     title ="GERLACHE")
-EIplot <- plot(modei,
-     theme = "bw",
-     title ="ELEPHANT ISLAND")
-BSplot <- plot(modbs,
-     theme = "bw",
-     title ="BRANSFIELD STRAIT")
-SSWIplot <- plot(modsswi,
-     theme = "bw",
-     title ="SSWI")
+     title ="D trunculus")
 
-ggarrange(GSplot, 
-          EIplot, 
-          BSplot, 
-          SSWIplot, 
-          common.legend = TRUE,
-          ncol=4,
-          legend="right")
+
 ```
 
-
-```{r}
-#### Parameters to `SSWI`
-
-# run ELEFAN with simulated annealing
-res_SAsswi <- ELEFAN_SA(lfq_results$SSIW, 
-                    SA_time = 60*0.5, 
-                    MA = 5, 
-                    agemax = 5,
-                    seasonalised = TRUE, addl.sqrt = TRUE,
-                    init_par = list(Linf = 6, 
-                                    K = 0.5, 
-                                    t_anchor = 0.5,
-                                    C=0.5, 
-                                    ts = 0.5),
-                    low_par = list(Linf = 5,
-                                   K = 0.01,
-                                   t_anchor = 0, 
-                                   C = 0, 
-                                   ts = 0),
-                    up_par = list(Linf = 7.5,
-                                  K = 1, 
-                                  t_anchor = 1,
-                                  C = 1, ts = 1))
-
-# run ELEFAN with genetic algorithm
-res_GAsswi <- ELEFAN_GA(lfq_results$SSIW, 
-                    MA = 5, 
-                    seasonalised = TRUE, 
-                    maxiter = 10, 
-                    agemax = 5,
-                    addl.sqrt = TRUE,
-                     low_par = list(Linf = 5,
-                                   K = 0.5,
-                                   t_anchor = 0, 
-                                   C = 0, 
-                                   ts = 0),
-                    up_par = list(Linf = 7.5,
-                                  K = 1, 
-                                  t_anchor = 1,
-                                  C = 1, ts = 1),
-                    monitor = FALSE)
-
-#### Parameters to `EI`
-
-# run ELEFAN with simulated annealing
-res_SAei <- ELEFAN_SA(lfq_results$EI, 
-                    SA_time = 60*0.5, 
-                    MA = 5, 
-                    agemax = 5,
-                    seasonalised = TRUE, addl.sqrt = TRUE,
-                    init_par = list(Linf = 6, 
-                                    K = 0.5, 
-                                    t_anchor = 0.5,
-                                    C=0.5, 
-                                    ts = 0.5),
-                    low_par = list(Linf = 5,
-                                   K = 0.01,
-                                   t_anchor = 0, 
-                                   C = 0, 
-                                   ts = 0),
-                    up_par = list(Linf = 7.5,
-                                  K = 1, 
-                                  t_anchor = 1,
-                                  C = 1, ts = 1))
-
-# run ELEFAN with genetic algorithm
-res_GAei <- ELEFAN_GA(lfq_results$EI, 
-                    MA = 5, 
-                    seasonalised = TRUE, 
-                    maxiter = 10, 
-                    agemax = 5,
-                    addl.sqrt = TRUE,
-                     low_par = list(Linf = 5,
-                                   K = 0.5,
-                                   t_anchor = 0, 
-                                   C = 0, 
-                                   ts = 0),
-                    up_par = list(Linf = 7.5,
-                                  K = 1, 
-                                  t_anchor = 1,
-                                  C = 1, ts = 1),
-                    monitor = FALSE)
-
-
-#### Parameters to `BS`
-
-# run ELEFAN with simulated annealing
-res_SAbs <- ELEFAN_SA(lfq_results$BS, 
-                    SA_time = 60*0.5, 
-                    MA = 5, 
-                    agemax = 5,
-                    seasonalised = TRUE, addl.sqrt = TRUE,
-                   init_par = list(Linf = 6, 
-                                    K = 0.5, 
-                                    t_anchor = 0.5,
-                                    C=0.5, 
-                                    ts = 0.5),
-                    low_par = list(Linf = 5,
-                                   K = 0.01,
-                                   t_anchor = 0, 
-                                   C = 0, 
-                                   ts = 0),
-                    up_par = list(Linf = 7.5,
-                                  K = 1, 
-                                  t_anchor = 1,
-                                  C = 1, ts = 1))
-
-# run ELEFAN with genetic algorithm
-res_GAbs <- ELEFAN_GA(lfq_results$BS, 
-                    MA = 5, 
-                    seasonalised = TRUE, 
-                    maxiter = 10, 
-                    agemax = 5,
-                    addl.sqrt = TRUE,
-                    low_par = list(Linf = 5,
-                                   K = 0.01,
-                                   t_anchor = 0, 
-                                   C = 0, 
-                                   ts = 0),
-                    up_par = list(Linf = 7.5,
-                                  K = 1, 
-                                  t_anchor = 1,
-                                  C = 1, ts = 1),
-                    monitor = FALSE)
-
-
-#### Parameters to `GERLACHE`
-
-# run ELEFAN with simulated annealing
-res_SAgs <- ELEFAN_SA(lfq_results$GERLACHE, 
-                    SA_time = 60*0.5, 
-                    MA = 5, 
-                    agemax = 5,
-                    seasonalised = TRUE, addl.sqrt = TRUE,
-                    init_par = list(Linf = 6, 
-                                    K = 0.5, 
-                                    t_anchor = 0.5,
-                                    C=0.5, 
-                                    ts = 0.5),
-                    low_par = list(Linf = 5,
-                                   K = 0.01,
-                                   t_anchor = 0, 
-                                   C = 0, 
-                                   ts = 0),
-                    up_par = list(Linf = 7.5,
-                                  K = 1, 
-                                  t_anchor = 1,
-                                  C = 1, ts = 1))
-
-# run ELEFAN with genetic algorithm
-res_GAgs <- ELEFAN_GA(lfq_results$GERLACHE, 
-                    MA = 5, 
-                    seasonalised = TRUE, 
-                    maxiter = 10, 
-                    agemax = 5,
-                    addl.sqrt = TRUE,
-                    low_par = list(Linf = 5,
-                                   K = 0.01,
-                                   t_anchor = 0, 
-                                   C = 0, 
-                                   ts = 0),
-                    up_par = list(Linf = 7.5,
-                                  K = 1, 
-                                  t_anchor = 1,
-                                  C = 1, ts = 1),
-                    monitor = FALSE)
-```
-#### Krill Female
-
-
-```{r}
-#### Parameters to `SSWI`
-
-# run ELEFAN with simulated annealing
-res_SAsswihe <- ELEFAN_SA(lfq_resultshe$SSIW, 
-                    SA_time = 60*0.5, 
-                    MA = 5, 
-                    agemax = 5,
-                    seasonalised = TRUE, addl.sqrt = TRUE,
-                    init_par = list(Linf = 6, 
-                                    K = 0.5, 
-                                    t_anchor = 0.5,
-                                    C=0.5, 
-                                    ts = 0.5),
-                    low_par = list(Linf = 5,
-                                   K = 0.01,
-                                   t_anchor = 0, 
-                                   C = 0, 
-                                   ts = 0),
-                    up_par = list(Linf = 7.5,
-                                  K = 1, 
-                                  t_anchor = 1,
-                                  C = 1, ts = 1))
-
-# run ELEFAN with genetic algorithm
-res_GAsswihe <- ELEFAN_GA(lfq_resultshe$SSIW, 
-                    MA = 5, 
-                    seasonalised = TRUE, 
-                    maxiter = 10, 
-                    agemax = 5,
-                    addl.sqrt = TRUE,
-                     low_par = list(Linf = 5,
-                                   K = 0.01,
-                                   t_anchor = 0, 
-                                   C = 0, 
-                                   ts = 0),
-                    up_par = list(Linf = 7.5,
-                                  K = 1, 
-                                  t_anchor = 1,
-                                  C = 1, ts = 1),
-                    monitor = FALSE)
-
-
-#### Parameters to `EI`
-
-# run ELEFAN with simulated annealing
-res_SAeihe <- ELEFAN_SA(lfq_resultshe$EI, 
-                    SA_time = 60*0.5, 
-                    MA = 5, 
-                    agemax = 5,
-                    seasonalised = TRUE, addl.sqrt = TRUE,
-                    init_par = list(Linf = 6, 
-                                    K = 0.5, 
-                                    t_anchor = 0.5,
-                                    C=0.5, 
-                                    ts = 0.5),
-                    low_par = list(Linf = 5,
-                                   K = 0.01,
-                                   t_anchor = 0, 
-                                   C = 0, 
-                                   ts = 0),
-                    up_par = list(Linf = 7.5,
-                                  K = 1, 
-                                  t_anchor = 1,
-                                  C = 1, ts = 1))
-
-# run ELEFAN with genetic algorithm
-res_GAeihe <- ELEFAN_GA(lfq_resultshe$EI, 
-                    MA = 5, 
-                    seasonalised = TRUE, 
-                    maxiter = 10, 
-                    agemax = 5,
-                    addl.sqrt = TRUE,
-                     low_par = list(Linf = 5,
-                                   K = 0.01,
-                                   t_anchor = 0, 
-                                   C = 0, 
-                                   ts = 0),
-                    up_par = list(Linf = 7.5,
-                                  K = 1, 
-                                  t_anchor = 1,
-                                  C = 1, ts = 1),
-                    monitor = FALSE)
-
-
-#### Parameters to `BS`
-
-
-# run ELEFAN with simulated annealing
-res_SAbshe <- ELEFAN_SA(lfq_resultshe$BS, 
-                    SA_time = 60*0.5, 
-                    MA = 5, 
-                    agemax = 5,
-                    seasonalised = TRUE, addl.sqrt = TRUE,
-                   init_par = list(Linf = 6, 
-                                    K = 0.5, 
-                                    t_anchor = 0.5,
-                                    C=0.5, 
-                                    ts = 0.5),
-                    low_par = list(Linf = 5,
-                                   K = 0.01,
-                                   t_anchor = 0, 
-                                   C = 0, 
-                                   ts = 0),
-                    up_par = list(Linf = 7.5,
-                                  K = 1, 
-                                  t_anchor = 1,
-                                  C = 1, ts = 1))
-
-# run ELEFAN with genetic algorithm
-res_GAbshe <- ELEFAN_GA(lfq_resultshe$BS, 
-                    MA = 5, 
-                    seasonalised = TRUE, 
-                    maxiter = 10, 
-                    agemax = 5,
-                    addl.sqrt = TRUE,
-                    low_par = list(Linf = 5,
-                                   K = 0.01,
-                                   t_anchor = 0, 
-                                   C = 0, 
-                                   ts = 0),
-                    up_par = list(Linf = 7.5,
-                                  K = 1, 
-                                  t_anchor = 1,
-                                  C = 1, ts = 1),
-                    monitor = FALSE)
-
-
-#### Parameters to `GERLACHE`
-
-
-# run ELEFAN with simulated annealing
-res_SAgshe <- ELEFAN_SA(lfq_resultshe$GERLACHE, 
-                    SA_time = 60*0.5, 
-                    MA = 5, 
-                    agemax = 5,
-                    seasonalised = TRUE, addl.sqrt = TRUE,
-                    init_par = list(Linf = 6, 
-                                    K = 0.5, 
-                                    t_anchor = 0.5,
-                                    C=0.5, 
-                                    ts = 0.5),
-                    low_par = list(Linf = 5,
-                                   K = 0.01,
-                                   t_anchor = 0, 
-                                   C = 0, 
-                                   ts = 0),
-                    up_par = list(Linf = 7.5,
-                                  K = 1, 
-                                  t_anchor = 1,
-                                  C = 1, ts = 1))
-
-# run ELEFAN with genetic algorithm
-res_GAgshe <- ELEFAN_GA(lfq_resultshe$GERLACHE, 
-                    MA = 5, 
-                    seasonalised = TRUE, 
-                    maxiter = 10, 
-                    agemax = 5,
-                    addl.sqrt = TRUE,
-                    low_par = list(Linf = 5,
-                                   K = 0.01,
-                                   t_anchor = 0, 
-                                   C = 0, 
-                                   ts = 0),
-                    up_par = list(Linf = 7.5,
-                                  K = 1, 
-                                  t_anchor = 1,
-                                  C = 1, ts = 1),
-                    monitor = FALSE)
-```
 
 Resuming parameters to both sex  by strata to krill
 ```{r}
-#male
-GAbs <- unlist(res_GAbs$par)
-SAbs <- unlist(res_SAbs$par)
-GAei <- unlist(res_GAei$par)
-SAei <- unlist(res_SAei$par)
-GAsswi <- unlist(res_GAsswi$par)
-SAsswi <- unlist(res_SAsswi$par)
-GAgs <- unlist(res_GAgs$par)
-SAgs <- unlist(res_SAgs$par)
-#female
-GAbshe <- unlist(res_GAbshe$par)
-SAbshe <- unlist(res_SAbshe$par)
-GAeihe <- unlist(res_GAeihe$par)
-SAeihe <- unlist(res_SAeihe$par)
-GAsswihe <- unlist(res_GAsswihe$par)
-SAsswihe <- unlist(res_SAsswihe$par)
-GAgshe <- unlist(res_GAgshe$par)
-SAgshe <- unlist(res_SAgshe$par)
-# join 
-t_k_linf_m <- rbind(GAbs[1:2],
-                  SAbs[1:2],
-                  GAei[1:2],
-                  SAei[1:2],
-                  GAsswi[1:2],
-                  SAsswi[1:2],
-                  GAgs[1:2],
-                  SAgs[1:2])
-t_k_linf_f <- rbind(GAbshe[1:2],
-                  SAbshe[1:2],
-                  GAeihe[1:2],
-                  SAeihe[1:2],
-                  GAsswihe[1:2],
-                  SAsswihe[1:2],
-                  GAgshe[1:2],
-                  SAgshe[1:2])
-row_names <- c("GA BS", "SA BS", "GA EI", 
-                 "SA EI", "GA SSWI", "SA SSWI",
-                 "GA GS", "SA GS")
-rownames(t_k_linf_m) <- row_names
-rownames(t_k_linf_f) <- row_names
-col_names_m <- c("L inf Male", "K Male")
-col_names_f <- c("L inf Female", "K Female")
-colnames(t_k_linf_m) <- col_names_m
-colnames(t_k_linf_f) <- col_names_f
+pardt  <- unlist(lfqbinELE$par)
+pardtGA  <- unlist(lfqbinGA$par)
+pardtSA <- unlist(lfqbinSA$par)
 
 
-total_para <- round(cbind(t_k_linf_f,
-                    t_k_linf_m),3)
-t_k_linf_total <- as_tibble(total_para, rownames = "group")
+pardttotal <- round(cbind(pardt,
+                    pardtGA,
+                    pardtSA),3) %>% 
+  as.data.frame() %>% 
+  rename("Nominal"="pardt",
+         "ELEFAN w/ Genearl Algoritm"="pardtGA",
+         "ELefAN with Simulated Annealing"="pardtSA")
 
-
-means <- t_k_linf_total %>%
-  summarise(across(where(is.numeric), ~ mean(.x, na.rm = TRUE))) %>%
-  mutate(group = "Mean")
-
-t_k_linf <- bind_rows(t_k_linf_total, means)
 ```
 
 ```{r eval=FALSE}
-write_csv(t_k_linf, "parametros_krill.csv")
+write_csv(pardttotal, "parametros_coquina.csv")
 ```
 
 
 total Table with `L_inf_` and `K`
 
 ```{r}
-t_k_linf %>%
-  separate(group, into = c("METHOD", "STRATA"), sep = " ") %>% 
-  kbl(booktabs = T,
+pardttotal %>%
+    kbl(booktabs = T,
       position="ht!",
-    caption = "Parametres LH in different strata with 2 algoritms to estimation") %>%
+    caption = "Parametres LH  with 3 algoritms to estimation") %>%
   kable_styling(latex_options = c("striped",
                                   "condensed"),
                 full_width = FALSE)
 
 ```
 
-Made VB curves by methot and strata by male
-
-separated group
-
 
 ```{r}
-t_k_linf_sep <- t_k_linf %>% 
-  filter(group != "Mean") %>% 
-   separate(group, into = c("METHOD", "STRATA"), sep = " ")
-```
+# Parámetros proporcionados
+Linf <- pardttotal$Nominal[1]
+K <- pardttotal$Nominal[2]
 
+LinfGA <- pardttotal$`ELEFAN w/ Genearl Algoritm`[1]
+KGA <- pardttotal$`ELEFAN w/ Genearl Algoritm`[2]
 
-```{r}
-# Definir la función de Von Bertalanffy
-von_bertalanffy <- function(t, L_inf, K) {
-  L_inf * (1 - exp(-K * (t-t0)))
+LinfSA <- pardttotal$`ELefAN with Simulated Annealing`[1]
+KSA <- pardttotal$`ELefAN with Simulated Annealing`[2]
+
+# Definir la función de crecimiento de Von Bertalanffy
+von_bertalanffy <- function(t, Linf, K, t0) {
+  Linf * (1 - exp(-K * (t - t0)))
 }
 
-# Generar una secuencia de tiempos (por ejemplo, de 0 a 5 años)
-t0 <- -0.3
-time <- seq(0, 7, by = 0.1)
+t0 <- -0.5
+t <- seq(0, 9, length.out = 100)  
 
-# Calcular longitud esperada para cada zona y tiempo
-df_curves_male <- t_k_linf_sep %>%
-  dplyr::select(c(1:2, 5:6)) %>% 
-  rowwise() %>%
-  mutate(length = list(von_bertalanffy(time, `L inf Male`, `K Male`))) %>%
-  unnest(length)
-# Agregar el vector de tiempo al DataFrame df_curves
-df_curves_male$time <- rep(time, nrow(t_k_linf_sep))
-# Graficar con ggplot
-male <- ggplot(df_curves_male,
-               aes(x = time, 
-                              y = length,
-                              group=STRATA,
-                              colour=STRATA)) +
-  geom_line(linewidth=1.1) +
-  labs(title = "Male",
-       x = "years",
-       y = "Length (cm)") +
-  theme_few()+
-  facet_wrap(.~METHOD)+
-  scale_colour_viridis_d(option="F",
-                         name="Strata")
+L_t <- von_bertalanffy(t, Linf, K, t0)
+L_tGA <- von_bertalanffy(t, LinfGA, KGA, t0)
+L_tSA <- von_bertalanffy(t, LinfSA, KSA, t0)
 
-```
-Made VB curves by methot and strata by female
+data <- tibble(t = t, L_t = L_t) %>% 
+  mutate(Method="Nominal")
+dataGA <- tibble(t = t, L_t = L_tSA) %>% 
+  mutate(Method="ELefAN with Simulated Annealing")
+dataSA <- tibble(t = t, L_t = L_tGA) %>% 
+  mutate(Method="ELEFAN w/ Genearl Algoritm")
 
-```{r}
-# Calcular longitud esperada para cada zona y tiempo
-df_curves_female <- t_k_linf_sep %>%
-  dplyr::select(c(1:4)) %>% 
-  rowwise() %>%
-  mutate(length = list(von_bertalanffy(time, `L inf Female`, `K Female`))) %>%
-  unnest(length)
-# Agregar el vector de tiempo al DataFrame df_curves
-df_curves_female$time <- rep(time, nrow(t_k_linf_sep))
-# Graficar con ggplot
-female <- ggplot(df_curves_female,
-               aes(x = time, 
-                              y = length,
-                              group=STRATA,
-                              colour=STRATA)) +
-  geom_line(linewidth=1.1) +
-  labs(title = "Female",
-       x = "years",
-       y = "Length (cm)") +
-  theme_few()+
-  facet_wrap(.~METHOD)+
-  scale_colour_viridis_d(option="F",
-                         name="Strata")
+datatot <- rbind(data,
+                 dataGA,
+                 dataSA)
 
-```
 
-both plot
+# Graficar la curva de Von Bertalanffy
+ggplot(datatot, aes(x = t, y = L_t, color=Method)) +
+  geom_line(size = 0.7) +
+  labs(title = "Von Bertalanffy curve",
+       x = "edad (t)",
+       y = "Longitud (mm)") +
+  scale_color_viridis_d()+
+  geom_hline(yintercept = LinfGA,
+             col="red",
+             linetype=2)+
+  theme_few()
 
-```{r fig.width=10, fig.height=8}
-ggarrange(female, male, common.legend = TRUE,
-          ncol=1,
-          legend="bottom")
 ```
 
 
@@ -1217,38 +409,6 @@ Fit a nonlinear mixed-effects model (NLMM) to data, via maximum likelihood using
 
 (work in progress)
 
-```{r eval=FALSE, echo=TRUE}
-
-#We use firts a descomposition methot with library `mixR` and the
-
-sf52020 <- sf5 %>% 
-  filter(sex_code %in% "F",
-         ID == "EI",
-         Year =="2020") %>% 
-  drop_na(length_total_cm)
-
-# fit a Normal mixture model
-mod1 = mixfit(sf52020$length_total_cm, ncomp = 4,
-              pi = c(0.5, 0.5, 0.5, 0.5), 
-              mu = c( 3, 4, 5, 6), 
-              sd = c(0.2, 0.2, 0.2, 0.2))
-mod2_weibull = mixfit(sf6$length_total_cm, family = 'weibull', ncomp = 3)
-
-s_weibull = select(sf5a$length_total_cm, ncomp = 2:6, family = 'weibull')
-
-s_normal = select(sf5a$length_total_cm, ncomp = 2:6)
-plot(s_weibull)
-plot(s_normal)
-
-# plot the fitted model# plot the fitted model# plot the fitted model
-plot(mod1)
-plot(mod2_weibull)
-
-# fit a Normal mixture model (equal variance)
-mod1_ev = mixfit(sf6$length_total_cm, ncomp = 2, ev = TRUE)
-
-```
-
 ## Natural Mortality in Krill
 
 In this exercises different bioanalogic methods are tested with General Algoritm
@@ -1256,137 +416,83 @@ In this exercises different bioanalogic methods are tested with General Algoritm
 #### MALE
 
 ```{r}
-MSSWI <- c(res_GAsswi$par, list(agemax = res_GAsswi$agemax))
+MdtNominal <- c(lfqbinELE$par, list(agemax = lfqbinELE$agemax))
 # use the function M_empirical to estimate natural mortality
-Msswi <- M_empirical(Linf = MSSWI$Linf, K_l = MSSWI$K, 
-                  tmax = MSSWI$agemax, temp = 5,
+MdtNo <- M_empirical(Linf = MdtNominal$Linf, K_l = MdtNominal$K, 
+                  tmax = MdtNominal$agemax, temp = 5,
                   tm50 = 2,
                   method = c("Pauly_Linf", "Hoenig", 
                             "Hoenig",
                              "AlversonCarney",
-                             "RikhterEfanov"
+                             "RikhterEfanov",
+                            "Then_growth"
                              ))
-# Bransfield
-BS <- c(res_GAbs$par, list(agemax = res_GAbs$agemax))
 
+MdtSA <- c(lfqbinSA$par, list(agemax = lfqbinSA$agemax))
 # use the function M_empirical to estimate natural mortality
-Mbs <- M_empirical(Linf = BS$Linf, K_l = BS$K, 
-                  tmax = BS$agemax, temp = 5,
+Mdtsa <- M_empirical(Linf = MdtSA$Linf, K_l = MdtSA$K, 
+                  tmax = MdtSA$agemax, temp = 5,
                   tm50 = 2,
                   method = c("Pauly_Linf", "Hoenig", 
-                              "Hoenig",
-                             "AlversonCarney",
-                             "RikhterEfanov"
-                             ))
-# GERLACHE
-GS <- c(res_GAgs$par, list(agemax = res_GAgs$agemax))
-
-# use the function M_empirical to estimate natural mortality
-Mgs <- M_empirical(Linf = GS$Linf, K_l = GS$K, 
-                  tmax = GS$agemax, temp = 5,
-                   tm50 = 2,
-                  method = c("Pauly_Linf", "Hoenig", 
-                             "Hoenig",
-                             "AlversonCarney",
-                             "RikhterEfanov"
-                             ))
-# Elephand Island
-MEI <- c(res_GAei$par, list(agemax = res_GAei$agemax))
-
-# use the function M_empirical to estimate natural mortality
-Mei <- M_empirical(Linf = MEI$Linf, K_l = MEI$K, 
-                  tmax = MEI$agemax, temp = 5,
-                  tm50 = 2,
-                  method = c("Pauly_Linf", "Hoenig", 
-                             "Hoenig",
-                             "AlversonCarney",
-                             "RikhterEfanov"
-                             ))
-```
-
-#### FEMALE
-
-```{r}
-MSSWIhe <- c(res_GAsswihe$par, list(agemax = res_GAsswihe$agemax))
-# use the function M_empirical to estimate natural mortality
-Msswihe <- M_empirical(Linf = MSSWIhe$Linf, K_l = MSSWIhe$K, 
-                  tmax = MSSWIhe$agemax, temp = 5,
-                  tm50 = 2,
-                  method = c("Pauly_Linf", 
                             "Hoenig",
                              "AlversonCarney",
-                             "RikhterEfanov"
+                             "RikhterEfanov",
+                            "Then_growth"
                              ))
-# Bransfield
-BShe <- c(res_GAbshe$par, list(agemax = res_GAbshe$agemax))
 
-# use the function M_empirical to estimate natural mortality
-Mbshe <- M_empirical(Linf = BShe$Linf, K_l = BShe$K, 
-                  tmax = BShe$agemax, temp = 5,
+MdtGA <- c(lfqbinGA$par, list(agemax = lfqbinGA$agemax))
+# us the function M_empirical to estimate natural mortality
+Mdtga <- M_empirical(Linf = MdtGA$Linf, K_l = MdtGA$K, 
+                  tmax = MdtGA$agemax, temp = 5,
                   tm50 = 2,
-                  method = c("Pauly_Linf", 
-                              "Hoenig",
+                  method = c("Pauly_Linf", "Hoenig", 
+                            "Hoenig",
                              "AlversonCarney",
-                             "RikhterEfanov"
+                             "RikhterEfanov",
+                            "Then_growth"
                              ))
-# GERLACHE
-GShe <- c(res_GAgshe$par, list(agemax = res_GAgshe$agemax))
 
-# use the function M_empirical to estimate natural mortality
-Mgshe <- M_empirical(Linf = GShe$Linf, K_l = GShe$K, 
-                  tmax = GShe$agemax, temp = 5,
-                   tm50 = 2,
-                  method = c("Pauly_Linf", 
-                             "Hoenig",
-                             "AlversonCarney",
-                             "RikhterEfanov"
-                             ))
-# Elephand Island
-MEIhe <- c(res_GAeihe$par, list(agemax = res_GAeihe$agemax))
-
-# use the function M_empirical to estimate natural mortality
-Meihe <- M_empirical(Linf = MEIhe$Linf, K_l = MEIhe$K, 
-                  tmax = MEIhe$agemax, temp = 5,
-                  tm50 = 2,
-                  method = c("Pauly_Linf", 
-                             "Hoenig",
-                             "AlversonCarney",
-                             "RikhterEfanov"
-                             ))
-```
-
-```{r}
-# junto las bases
-
-Total_M_male <- cbind(Mei, Mbs, Mgs, Msswi)
-colnames(Total_M_male) <- c("EI", "BS" , "GS", "SSWI")
-mean_m <- colMeans(Total_M_male, na.rm = TRUE)
-Total_M_Mean_male <- rbind(Total_M_male, Mean = mean_m)
-# Agregar los promedios como una nueva fila al final del array
-
-Total_M_femal <- cbind(Meihe, Mbshe, Mgshe, Msswihe)
-colnames(Total_M_femal) <- c("EI", "BS" , "GS", "SSWI")
-mean_m <- colMeans(Total_M_femal, na.rm = TRUE)
-Total_M_Mean_femal <- rbind(Total_M_femal, Mean = mean_m)
 ```
 
 
+
 ```{r}
-Total_M_Mean_male  %>%
+Total_M <- cbind(MdtNo,
+                 Mdtsa,
+                 Mdtga)
+colnames(Total_M) <- c("Nominal", 
+                       "ELEFAN w/ Genearl Algoritm",
+                        "ELEFAN with Simulated Annealing")
+mean_m <- colMeans(Total_M, na.rm = TRUE)
+Total_M_Mean <- rbind(Total_M, Mean = mean_m)
+
+# Convertir la matriz a data.frame
+df_Total_M <- as.data.frame(Total_M_Mean)
+
+# Agregar la columna de métodos
+df_Total_M$Method <- rownames(Total_M_Mean)
+
+# Convertir el data.frame a formato largo
+df_long <- df_Total_M %>%
+  pivot_longer(cols = c("Nominal", 
+                       "ELEFAN w/ Genearl Algoritm",
+                        "ELEFAN with Simulated Annealing"), 
+               names_to = "Algoritm", 
+               values_to = "Value")
+
+```
+
+
+
+```{r}
+Total_M  %>%
   kbl(booktabs = T,
       position="ht!",
-    caption = "Estimated M by Strata for Male") %>%
+    caption = "Estimated M by Method to D. trunculus") %>%
   kable_styling(latex_options = c("striped",
                                   "condensed"),
                 full_width = FALSE)
 
-Total_M_Mean_femal  %>%
-  kbl(booktabs = T,
-      position="ht!",
-    caption = "Estimated M by Strata for Female") %>%
-  kable_styling(latex_options = c("striped",
-                                  "condensed"),
-                full_width = FALSE)
 
 ```
 
@@ -1394,22 +500,12 @@ Total_M_Mean_femal  %>%
 Plot to female
 ```{r}
 # Convertir la matriz a data.frame
-df_female <- as.data.frame(Total_M_Mean_femal)
+df_total <- as.data.frame(df_long)
 
-# Agregar la columna de métodos
-df_female$Method <- rownames(Total_M_Mean_femal)
-
-# Convertir el data.frame a formato largo
-df_long <- df_female %>%
-  pivot_longer(cols = EI:SSWI, 
-               names_to = "Stratum", 
-               values_to = "Value")
-
-# Dot Plot
-m_female<- ggplot(df_long %>%
+M_Total<- ggplot(df_total %>%
                               drop_na() %>%
                               filter(Method != "Mean"), 
-                            aes(x = Stratum, 
+                            aes(x = Algoritm, 
                                 y = Value,
                                 fill = Method)) +
     geom_point(size = 3,     
@@ -1423,13 +519,15 @@ m_female<- ggplot(df_long %>%
                   min.segment.length = 0, 
                   nudge_y = 0.05,   
                   direction = "both") +
-  labs(title = "Female",
+  labs(title = "Parameters to D. trunculus",
        x = "",
        y = "Natural Mortality",
        fill = "Method") +
   theme_few() +
+  theme(axis.text = element_text(angle=90))+
   scale_fill_viridis_d(option = "H") +
   ylim(0, 2)
+M_Total
 ```
 
 Plot to male
