@@ -3,3 +3,5 @@
 .RData
 .Ruserdata
 *.pdf
+index_files/
+Fig/

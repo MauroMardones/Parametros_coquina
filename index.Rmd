@@ -29,6 +29,7 @@ editor_options:
 
 
 ```{r echo=FALSE, setup1}
+set.seed(999)
 rm(list = ls())
 knitr::opts_chunk$set(echo = TRUE,
                       message = FALSE,
@@ -58,6 +59,7 @@ library(hrbrthemes)
 library(kableExtra)
 library(gtsummary)
 library(ggrepel)
+library(TropFishR)
 ```
 
 # Contexto
@@ -127,30 +129,17 @@ tallap <- sizeall2 %>%
   filter(rastro=="POBLACIONAL")
 ```
 
-# Methodology
+# Metodologia
 
-Statistical difference to test
+Test de diferencias estadisticas
 
-```{r}
-m <- aov(length_total_cm ~ID, data=sf4)
+```{r eval=FALSE}
+m <- aov(sizeE~Sampling.point, data=tallap)
 plot(TukeyHSD(m))
+
 ```
 
 ## Data
-
-```{r}
-sf5 <- sf4 |> 
-  dplyr::select(c("ID",
-        "date_catchperiod_start",
-        "length_total_cm",
-        "Year",
-        "Month",
-        "sex_code",
-         "greenweight_kg")) |> 
-  mutate(ID = if_else(ID == "Extra", "GERLACHE", ID)) |>  
-  filter(ID !="Outer") |> 
-  data.frame()
-```
 
 Theoric curve in *Donax trunculus*
 
@@ -177,10 +166,7 @@ for(i in seq(K)){
 
 ```
 
-## Parameters estimation `k` and `L_inf_`
-
-
-
+## Estimacion de parametros `k` y `L_inf_`
 
 ```{r}
 #MALE
@@ -208,12 +194,11 @@ Bhattacharya(lfq)
 ```
 
 
-now we assign objet to male `lfq_result` and female `lfq_resulthe` and plot with `lfqRestructure()`
+now we assign objet to `lfq` and plot with `lfqRestructure()`
 
 
-Male
 
-```{r}
+```{r message=F, warning=FALSE, results='hold'}
 lfqbin <- lfqRestructure(lfq, MA = 11)
   # Graficar el objeto lfq reestructurado
 plot(lfqbin, 
@@ -241,7 +226,7 @@ lfqbinELE <- ELEFAN(lfqbin,
                     MA = 7,
                     agemax=5,
                     Linf_range = seq(40, 60, length.out = 30),
-                    K_range = exp(seq(log(0.1),log(4), length.out = 30)),
+                    K_range = seq(0.6, 1, length.out = 30),
                     method = "cross",
                     cross.date = tallap2$Date[3],
                     cross.midLength = tallap2$size[5],
@@ -294,30 +279,11 @@ lfqbinGA <- ELEFAN_GA(lfqbin,
 
 
 
-### Modal Progression analysis with `ELEFAN` to estimated `Linf`and `K`
+### Analisis de progresión modal con  `ELEFAN` para estimar `Linf` y `K`
 
 Method based on @Pauly1987 and @Mildenberger2017
 
-first we use `mixR` to identified numbers of compoenent (modal compositions) we have each stratum. With this result, set `ELEFAN` method
 
-
-```{r eval=FALSE}
-# fit a Normal mixture model
-modgs = mixfit(tallap2$size, ncomp = 3,
-              pi = c(0.5, 0.5, 0.5), 
-              mu = c(2, 3, 4), 
-              sd = c(0.2, 0.2, 0.2))
-
-
-GSplot <- plot(modgs,
-     theme = "bw",
-     title ="D trunculus")
-
-
-```
-
-
-Resuming parameters to both sex  by strata to krill
 ```{r}
 pardt  <- unlist(lfqbinELE$par)
 pardtGA  <- unlist(lfqbinGA$par)
@@ -394,7 +360,13 @@ ggplot(datatot, aes(x = t, y = L_t, color=Method)) +
   labs(title = "Von Bertalanffy curve",
        x = "edad (t)",
        y = "Longitud (mm)") +
-  scale_color_viridis_d()+
+  scale_color_viridis_d(option="F")+
+  geom_hline(yintercept = Linf,
+             col="red",
+             linetype=2)+
+  geom_hline(yintercept = LinfSA,
+             col="red",
+             linetype=2)+
   geom_hline(yintercept = LinfGA,
              col="red",
              linetype=2)+
@@ -409,17 +381,17 @@ Fit a nonlinear mixed-effects model (NLMM) to data, via maximum likelihood using
 
 (work in progress)
 
-## Natural Mortality in Krill
+## Mortalidad Natural en coquina
 
 In this exercises different bioanalogic methods are tested with General Algoritm
 
-#### MALE
+
 
 ```{r}
 MdtNominal <- c(lfqbinELE$par, list(agemax = lfqbinELE$agemax))
 # use the function M_empirical to estimate natural mortality
 MdtNo <- M_empirical(Linf = MdtNominal$Linf, K_l = MdtNominal$K, 
-                  tmax = MdtNominal$agemax, temp = 5,
+                  tmax = MdtNominal$agemax, temp = 17,
                   tm50 = 2,
                   method = c("Pauly_Linf", "Hoenig", 
                             "Hoenig",
@@ -431,7 +403,7 @@ MdtNo <- M_empirical(Linf = MdtNominal$Linf, K_l = MdtNominal$K,
 MdtSA <- c(lfqbinSA$par, list(agemax = lfqbinSA$agemax))
 # use the function M_empirical to estimate natural mortality
 Mdtsa <- M_empirical(Linf = MdtSA$Linf, K_l = MdtSA$K, 
-                  tmax = MdtSA$agemax, temp = 5,
+                  tmax = MdtSA$agemax, temp = 17,
                   tm50 = 2,
                   method = c("Pauly_Linf", "Hoenig", 
                             "Hoenig",
@@ -443,7 +415,7 @@ Mdtsa <- M_empirical(Linf = MdtSA$Linf, K_l = MdtSA$K,
 MdtGA <- c(lfqbinGA$par, list(agemax = lfqbinGA$agemax))
 # us the function M_empirical to estimate natural mortality
 Mdtga <- M_empirical(Linf = MdtGA$Linf, K_l = MdtGA$K, 
-                  tmax = MdtGA$agemax, temp = 5,
+                  tmax = MdtGA$agemax, temp = 17,
                   tm50 = 2,
                   method = c("Pauly_Linf", "Hoenig", 
                             "Hoenig",
@@ -530,59 +502,9 @@ M_Total<- ggplot(df_total %>%
 M_Total
 ```
 
-Plot to male
-```{r}
-# Convertir la matriz a data.frame
-df_male <- as.data.frame(Total_M_Mean_male)
-
-# Agregar la columna de métodos
-df_male$Method <- rownames(Total_M_Mean_male)
-
-# Convertir el data.frame a formato largo
-df_long_male <- df_male %>%
-  pivot_longer(cols = EI:SSWI, 
-               names_to = "Stratum", 
-               values_to = "Value") 
-
-# Dot Plot
-m_male<- ggplot(df_long_male %>%
-                              drop_na() %>%
-                              filter(Method != "Mean"), 
-                            aes(x = Stratum, 
-                                y = Value,
-                                fill = Method)) +
-  geom_point(size = 3,     
-              shape = 21,   
-              color = "black") +  
-  geom_text_repel(aes(label = round(Value, 3)),  
-                  size = 3,                      
-                  box.padding = 0.35,            
-                  point.padding = 0.5,         
-                  segment.color = 'grey50',
-                  min.segment.length = 0, 
-                  nudge_y = 0.05,   
-                  direction = "both") +
-  labs(title = "Male",
-       x = "",
-       y = "Natural Mortality",
-       fill = "Method") +
-  theme_few() +
-  scale_fill_viridis_d(option = "H") +
-  ylim(0, 2)
-
-```
-
-both plot
-
-```{r}
-ggarrange(m_female, m_male, 
-          common.legend = TRUE,
-          ncol=1,
-          legend="right")
-```
 Statistical diferences in female
 
-```{r}
+```{r eval=FALSE}
 # Realizar la prueba ANOVA
 anova_result <- aov(Value ~ Stratum, data = df_long_male %>% drop_na())
 summary(anova_result)
@@ -614,42 +536,9 @@ kbl(tukey_table,
 
 
 ```
-Statistical diferences in female
-
-```{r}
-# Realizar la prueba ANOVA
-anova_result_ma <- aov(Value ~ Stratum, data = df_long %>% drop_na())
-summary(anova_result_ma)
-# Realizar la prueba post hoc de Tukey
-tukey_result_ma <- TukeyHSD(anova_result_ma)
-# Convertir los resultados de Tukey a un data frame
-tukey_df_ma <- as.data.frame(tukey_result_ma$Stratum)
-tukey_df_ma$pair <- rownames(tukey_df_ma)
-tukey_df_ma <- tukey_df_ma %>%
-  mutate(Stratum1 = sapply(strsplit(pair, "-"), `[`, 1),
-         Stratum2 = sapply(strsplit(pair, "-"), `[`, 2))
-
-# Seleccionar las columnas relevantes
-tukey_table_ma <- tukey_df_ma %>%
-  dplyr::select(Stratum1, Stratum2, diff, `p adj`, `lwr`, `upr`) %>%
-  rename(Difference = diff, 
-         P_value = `p adj`, 
-         Lower_CI = `lwr`, 
-         Upper_CI = `upr`)
 
 
-kbl(tukey_table, 
-    caption = "Test to differences between strata")  |> 
-  kable_classic(full_width = F, 
-                html_font = "Cambria") |> 
-  kable_styling(bootstrap_options = "striped", 
-                latex_options = "striped")
-
-
-```
-
-
-# References
+# Referencias
 
 
 
